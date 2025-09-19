@@ -14,10 +14,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { insertBotSchema } from "@shared/schema";
 
-const createBotFormSchema = insertBotSchema.extend({
+const createBotFormSchema = z.object({
+  name: z.string().min(1, "Bot name is required"),
   personality: z.array(z.string()).default([]),
   greeting: z.string().min(10, "Greeting must be at least 10 characters"),
-  crisisKeywords: z.string().transform(str => str.split(',').map(s => s.trim()).filter(Boolean)),
+  crisisKeywords: z.string(),
+  openmicBotId: z.string().optional(),
+  isActive: z.boolean().default(true),
 });
 
 type CreateBotFormData = z.infer<typeof createBotFormSchema>;
@@ -46,18 +49,24 @@ export default function CreateBotModal({ isOpen, onClose }: CreateBotModalProps)
       personality: ["empathetic", "calm", "non-judgmental"],
       greeting: "Hello, thank you for calling. This is your Mental Wellness Assistant. To protect your privacy, this call is not being recorded for human review. Please provide your unique Patient ID to get started.",
       crisisKeywords: "suicidal, harm, hopeless, end it all",
+      openmicBotId: "",
       isActive: true,
     },
   });
 
   const createBotMutation = useMutation({
     mutationFn: async (data: CreateBotFormData) => {
-      const response = await apiRequest("POST", "/api/bots", {
-        ...data,
-        crisisKeywords: typeof data.crisisKeywords === 'string' 
-          ? data.crisisKeywords.split(',').map(s => s.trim()).filter(Boolean)
-          : data.crisisKeywords,
-      });
+      // Transform the data to match the API expected format
+      const transformedData = {
+        name: data.name,
+        personality: data.personality,
+        greeting: data.greeting,
+        crisisKeywords: data.crisisKeywords.split(',').map(s => s.trim()).filter(Boolean),
+        openmicBotId: data.openmicBotId,
+        isActive: data.isActive,
+      };
+      
+      const response = await apiRequest("POST", "/api/bots", transformedData);
       return response.json();
     },
     onSuccess: () => {
@@ -193,7 +202,7 @@ export default function CreateBotModal({ isOpen, onClose }: CreateBotModalProps)
                     <Input 
                       placeholder="suicidal, harm, hopeless, end it all"
                       {...field}
-                      value={typeof field.value === 'string' ? field.value : field.value?.join(', ') || ''}
+                      value={field.value || ''}
                       data-testid="input-crisis-keywords"
                     />
                   </FormControl>
