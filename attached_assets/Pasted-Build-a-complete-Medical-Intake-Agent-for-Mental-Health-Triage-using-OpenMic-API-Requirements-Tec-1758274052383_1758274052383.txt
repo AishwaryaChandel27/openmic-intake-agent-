@@ -1,0 +1,83 @@
+Build a complete Medical Intake Agent for Mental Health Triage using OpenMic API.
+
+Requirements
+
+Tech Stack:
+
+Backend: Node.js / Express (routes for pre-call, in-call function, and post-call webhooks).
+
+Frontend: Next.js with TailwindCSS for UI (bot management and call logs).
+
+Database: SQLite or MongoDB (for storing call summaries, flags, logs).
+
+Ngrok support for webhook testing.
+
+Agent Prompt & Personality:
+
+Tone: empathetic, calm, non-judgmental.
+
+Greeting: “Hello, thank you for calling. This is your Mental Wellness Assistant. To protect your privacy, this call is not being recorded for human review. Please provide your unique Patient ID to get started.”
+
+Pre-call Webhook (/api/precall):
+
+Returns simulated patient data (name, last appointment date, last session topic).
+
+Example:
+
+{
+  "patientId": "P123",
+  "name": "John Doe",
+  "lastAppointment": "2025-08-12",
+  "lastTopic": "anxiety management"
+}
+
+
+In-call Function Call (/api/getPatientInfo):
+
+Accepts patient ID.
+
+Returns personalized data to be used during the conversation.
+
+Example response:
+
+{
+  "patientId": "P123",
+  "name": "John Doe",
+  "resources": [
+    {"type": "article", "title": "Coping with Anxiety", "link": "https://example.com/anxiety"},
+    {"type": "hotline", "title": "24x7 Crisis Hotline", "phone": "+1-800-273-8255"}
+  ]
+}
+
+
+Post-call Webhook (/api/postcall):
+
+Receives transcript + metadata from OpenMic.
+
+Runs sentiment analysis (positive/neutral/distress/crisis).
+
+Flags keywords like “suicidal”, “harm”, “hopeless”.
+
+Stores transcript, analysis, and flags in DB.
+
+Frontend UI Features:
+
+Bot Management: Create, update, delete, and list bots (via OpenMic API). Display Bot UIDs.
+
+Call Logs: Show patient ID, name, date, duration, emotional score/flag, and quick summary.
+
+Detailed Call View: Full transcript, pre-call data, in-call API calls, and final summary. Flagged calls appear highlighted for urgent review.
+
+Demo Flow:
+
+Agent introduces itself.
+
+Patient provides ID.
+
+API fetches patient info (via /api/getPatientInfo).
+
+Agent continues triage conversation and provides resources.
+
+Post-call webhook logs transcript + sentiment into UI.
+
+Use OpenMic’s “Test Call” feature for demo (no real phone call needed).
